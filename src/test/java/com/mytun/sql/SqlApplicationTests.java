@@ -21,14 +21,25 @@ class SqlApplicationTests {
     private MockMvc mockMvc;
 
     /**
+     * 查询
+     * @throws Exception
+     */
+    @Test
+    void getTestSql() throws Exception {
+        MvcResult mvcResult =  mockMvc.perform(MockMvcRequestBuilders.get("/user/search")
+                .param("query","name$=$测试人员")
+                .param("sort","name$asc")).andReturn();
+        System.out.println(mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8));
+    }
+
+    /**
      * 普通查询
      * @throws Exception
      */
     @Test
     void getTestSimple() throws Exception {
         MvcResult mvcResult =  mockMvc.perform(MockMvcRequestBuilders.get("/user/search")
-                .param("query","name$=$测试人员")
-                .param("sort","name$asc")).andReturn();
+                .param("query","name$=$测试人员")).andReturn();
         System.out.println(mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8));
     }
 
@@ -39,8 +50,7 @@ class SqlApplicationTests {
     @Test
     void getTestMoreTable() throws Exception {
         MvcResult mvcResult =  mockMvc.perform(MockMvcRequestBuilders.get("/user/search")
-                .param("query","role.id$=$'111'")
-                .param("sort","name$asc")).andReturn();
+                .param("query","role.id$=$'111'")).andReturn();
         System.out.println(mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8));
     }
     /**
@@ -50,20 +60,18 @@ class SqlApplicationTests {
     @Test
     void getTestManyConditionsAnd() throws Exception {
         MvcResult mvcResult =  mockMvc.perform(MockMvcRequestBuilders.get("/user/search")
-                .param("query","name$=$测试人员,role.id$=$'111',+")
-                .param("sort","name$asc")).andReturn();
+                .param("query","name$=$测试人员,role.id$=$'111',+")).andReturn();
         System.out.println(mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8));
     }
 
     /**
-     * 多条件 and
+     * 多条件 or
      * @throws Exception
      */
     @Test
     void getTestManyConditionsOr() throws Exception {
         MvcResult mvcResult =  mockMvc.perform(MockMvcRequestBuilders.get("/user/search")
-                .param("query","name$=$测试人员,role.id$=$'111',-")
-                .param("sort","name$asc")).andReturn();
+                .param("query","name$=$测试人员,role.id$=$'111',-")).andReturn();
         System.out.println(mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8));
     }
 
@@ -74,10 +82,21 @@ class SqlApplicationTests {
     @Test
     void getTestManyConditionsAndOr() throws Exception {
         MvcResult mvcResult =  mockMvc.perform(MockMvcRequestBuilders.get("/user/search")
-                .param("query","name$=$测试人员,role.id$=$'111',-,name$=$测试人员,role.id$=$'111',-,+")
-                .param("sort","name$asc")).andReturn();
+                .param("query","name$=$测试人员,role.id$=$'111',-,name$=$测试人员,role.id$=$'111',-,+")).andReturn();
         System.out.println(mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8));
     }
+
+    /**
+     * 排序
+     * @throws Exception
+     */
+    @Test
+    void getTestSort() throws Exception {
+        MvcResult mvcResult =  mockMvc.perform(MockMvcRequestBuilders.get("/user/search")
+                .param("sort","name$asc,role.name$desc")).andReturn();
+        System.out.println(mvcResult.getResponse().getContentAsString(StandardCharsets.UTF_8));
+    }
+
 
 
 }
