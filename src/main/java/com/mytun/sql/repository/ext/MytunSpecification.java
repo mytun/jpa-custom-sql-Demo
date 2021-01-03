@@ -127,33 +127,14 @@ public class MytunSpecification<T> implements Specification<T> {
         }
     }
 
-
-    private Predicate where(String i, Root<T> root, CriteriaBuilder builder){
-        SearchCriteria criteria = new SearchCriteria(i);
-        String[] sa = criteria.getKey().split("\\.");
-        Path pp;
-        if(sa.length==0){
-            pp = root.get(criteria.getKey());
-        }else {
-            pp = root.get(sa[0]);
-            if(sa.length>=2){
-                for (int i_=1;i_<sa.length;i_++){
-                    pp= pp.get(sa[i_]);
-                }
-            }
-        }
-
+    private Predicate where(SearchCriteria criteria,Path pp,CriteriaBuilder builder){
+        String value = criteria.getValue();
         switch (criteria.getOperation()){
-            case "notNull":
-                return builder.isNotNull(pp);
-            case "null":
-                return builder.isNull(pp);
             case "like":
                 return builder.like( pp, "%" + criteria.getValue() + "%");
             case "notLike":
                 return builder.notLike( pp, "%" + criteria.getValue() + "%");
         }
-        String value = criteria.getValue();
         boolean isInteger = isInteger(value);
         boolean isDouble = isDouble(value);
         if(isInteger||isDouble){
@@ -185,39 +166,72 @@ public class MytunSpecification<T> implements Specification<T> {
                     throw new RuntimeException("not find model");
                 }
             }else {
-                String[] sav =value.split("\\.");
-                Path<?> ppv;
-                if(sav.length==0){
-                    try {
-                        ppv = root.get(value);
-                    }catch (Exception e){
-                        ppv = null;
-                    }
-                }else{
-                    try {
-                        ppv = root.get(sav[0]);
-                        if(ppv!=null&&sav.length>=2){
-                            for (int i_=1;i_<sa.length;i_++){
-                                ppv= ppv.get(sa[i_]);
-                                if(ppv==null){
-                                    break;
-                                }
-                            }
-                        }
-                    }catch (Exception e){
-                        try {
-                            ppv = root.get(value);
-                        }catch (Exception ee){
-                            ppv = null;
-                        }
-                    }
-                }
-                if(ppv!=null){
-                    return predicate(criteria.getOperation(),pp,ppv,builder);
-                }
+
             }
             return predicate(criteria.getOperation(),pp,valueComparable,builder);
         }
+    }
+    private Predicate where(String i, Root<T> root, CriteriaBuilder builder){
+        SearchCriteria criteria = new SearchCriteria(i);
+        String[] sa = criteria.getKey().split("\\.");
+        Path pp;
+        if(sa.length==0){
+            pp = root.get(criteria.getKey());
+        }else {
+            pp = root.get(sa[0]);
+            if(sa.length>=2){
+                for (int i_=1;i_<sa.length;i_++){
+                    pp= pp.get(sa[i_]);
+                }
+            }
+        }
+        switch (criteria.getOperation()){
+            case "notNull":
+                return builder.isNotNull(pp);
+            case "null":
+                return builder.isNull(pp);
+        }
+        String value = criteria.getValue();
+        if(criteria.isVariable()){
+            String[] sav =value.split("\\.");
+            Path ppv;
+            if(sav.length==0){
+                try {
+                    ppv = root.get(value);
+                }catch (Exception e){
+                    ppv = null;
+                }
+            }else{
+                try {
+                    ppv = root.get(sav[0]);
+                    if(ppv!=null&&sav.length>=2){
+                        for (int i_=1;i_<sa.length;i_++){
+                            ppv= ppv.get(sa[i_]);
+                            if(ppv==null){
+                                break;
+                            }
+                        }
+                    }
+                }catch (Exception e){
+                    try {
+                        ppv = root.get(value);
+                    }catch (Exception ee){
+                        ppv = null;
+                    }
+                }
+            }
+            if(ppv!=null){
+                switch (criteria.getOperation()){
+                    case "like":
+                        return builder.like( pp, ppv);
+                    case "notLike":
+                        return builder.notLike( pp, ppv);
+                    default:
+                        return predicate(criteria.getOperation(),pp,ppv,builder);
+                }
+            }
+        }
+        return where(criteria,pp,builder);
     }
 
     @Override
