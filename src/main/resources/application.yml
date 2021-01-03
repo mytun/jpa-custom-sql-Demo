@@ -1,0 +1,22 @@
+server:
+  port: 9003
+spring:
+  thymeleaf:
+    prefix: classpath:/templates
+  datasource:
+    url: jdbc:h2:file:./dbh2/dbc2m;AUTO_SERVER=TRUE
+    username: root
+    password: root
+    driver-class-name: org.h2.Driver
+    platform: h2
+  application:
+    name: mytun-user
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    open-in-view: true
+  h2:
+    console:
+      path: /h2
+
