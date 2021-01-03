@@ -135,41 +135,28 @@ public class MytunSpecification<T> implements Specification<T> {
             case "notLike":
                 return builder.notLike( pp, "%" + criteria.getValue() + "%");
         }
-        boolean isInteger = isInteger(value);
-        boolean isDouble = isDouble(value);
-        if(isInteger||isDouble){
-            Number ne;
-            if(isInteger){
-                ne = Integer.valueOf(criteria.getValue());
-            }else {
-                ne = Double.valueOf(criteria.getValue());
-            }
-            return predicate(criteria.getOperation(),pp,ne,builder);
-        }else{
-            Comparable<?> valueComparable = value;
-            int isDate = isDate(criteria.getValue());
-            if(isDate!=-1){
-                SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-                SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd");
-                SimpleDateFormat sdf3 = new SimpleDateFormat("hh:mm:ss");
-                try {
-                    if(isDate==1){
-                        valueComparable = sdf1.parse(criteria.getValue());
-                    }else if(isDate==2){
-                        valueComparable = sdf2.parse(criteria.getValue());
-                    } else if (isDate==3){
-                        valueComparable = sdf3.parse(criteria.getValue());
-                    }else {
-                        throw new RuntimeException();
-                    }
-                }catch (Exception e){
-                    throw new RuntimeException("not find model");
+        Comparable<?> valueComparable = value;
+        int isDate = isDate(criteria.getValue());
+        if(isDate!=-1){
+            SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+            SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd");
+            SimpleDateFormat sdf3 = new SimpleDateFormat("hh:mm:ss");
+            try {
+                if(isDate==1){
+                    valueComparable = sdf1.parse(criteria.getValue());
+                }else if(isDate==2){
+                    valueComparable = sdf2.parse(criteria.getValue());
+                } else if (isDate==3){
+                    valueComparable = sdf3.parse(criteria.getValue());
+                }else {
+                    throw new RuntimeException();
                 }
-            }else {
-
+            }catch (Exception e){
+                throw new RuntimeException("not find model");
             }
-            return predicate(criteria.getOperation(),pp,valueComparable,builder);
         }
+        return predicate(criteria.getOperation(),pp,valueComparable,builder);
+
     }
     private Predicate where(String i, Root<T> root, CriteriaBuilder builder){
         SearchCriteria criteria = new SearchCriteria(i);
@@ -190,48 +177,60 @@ public class MytunSpecification<T> implements Specification<T> {
                 return builder.isNotNull(pp);
             case "null":
                 return builder.isNull(pp);
-        }
-        String value = criteria.getValue();
-        if(criteria.isVariable()){
-            String[] sav =value.split("\\.");
-            Path ppv;
-            if(sav.length==0){
-                try {
-                    ppv = root.get(value);
-                }catch (Exception e){
-                    ppv = null;
-                }
-            }else{
-                try {
-                    ppv = root.get(sav[0]);
-                    if(ppv!=null&&sav.length>=2){
-                        for (int i_=1;i_<sa.length;i_++){
-                            ppv= ppv.get(sa[i_]);
-                            if(ppv==null){
-                                break;
+            default:
+                String value = criteria.getValue();
+                if(!criteria.isValueString()){
+                    boolean isInteger = isInteger(value);
+                    boolean isDouble = isDouble(value);
+                    if(isInteger||isDouble){
+                        Number ne;
+                        if(isInteger){
+                            ne = Integer.valueOf(criteria.getValue());
+                        }else {
+                            ne = Double.valueOf(criteria.getValue());
+                        }
+                        return predicate(criteria.getOperation(),pp,ne,builder);
+                    }
+                    String[] sav =value.split("\\.");
+                    Path ppv;
+                    if(sav.length==0){
+                        try {
+                            ppv = root.get(value);
+                        }catch (Exception e){
+                            ppv = null;
+                        }
+                    }else{
+                        try {
+                            ppv = root.get(sav[0]);
+                            if(ppv!=null&&sav.length>=2){
+                                for (int i_=1;i_<sa.length;i_++){
+                                    ppv= ppv.get(sa[i_]);
+                                    if(ppv==null){
+                                        break;
+                                    }
+                                }
+                            }
+                        }catch (Exception e){
+                            try {
+                                ppv = root.get(value);
+                            }catch (Exception ee){
+                                ppv = null;
                             }
                         }
                     }
-                }catch (Exception e){
-                    try {
-                        ppv = root.get(value);
-                    }catch (Exception ee){
-                        ppv = null;
+                    if(ppv!=null){
+                        switch (criteria.getOperation()){
+                            case "like":
+                                return builder.like( pp, ppv);
+                            case "notLike":
+                                return builder.notLike( pp, ppv);
+                            default:
+                                return predicate(criteria.getOperation(),pp,ppv,builder);
+                        }
                     }
                 }
-            }
-            if(ppv!=null){
-                switch (criteria.getOperation()){
-                    case "like":
-                        return builder.like( pp, ppv);
-                    case "notLike":
-                        return builder.notLike( pp, ppv);
-                    default:
-                        return predicate(criteria.getOperation(),pp,ppv,builder);
-                }
-            }
+                return where(criteria,pp,builder);
         }
-        return where(criteria,pp,builder);
     }
 
     @Override

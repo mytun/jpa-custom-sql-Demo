@@ -4,7 +4,7 @@ public class SearchCriteria {
     private String key;
     private String operation;
     private String value;
-    private boolean variable = false;
+    private boolean valueString = false;
 
     public String getKey() {
         return key;
@@ -18,8 +18,8 @@ public class SearchCriteria {
         return value;
     }
 
-    public boolean isVariable() {
-        return variable;
+    public boolean isValueString() {
+        return valueString;
     }
 
     public SearchCriteria(String query) {
@@ -34,7 +34,7 @@ public class SearchCriteria {
             if (this.value.length() >= 2 &&
                     "'".equals(this.value.substring(0, 1)) &&
                     "'".equals(this.value.substring(this.value.length() - 1))) {
-                this.variable = true;
+                this.valueString = true;
                 this.value = this.value.substring(1,this.value.length()-1);
             }
         }
