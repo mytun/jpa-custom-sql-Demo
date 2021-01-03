@@ -1,5 +1,6 @@
 package com.mytun.sql.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
@@ -20,7 +21,8 @@ public class Role {
     @Column(name = "name")
     private String name;
 
-    @OneToMany(mappedBy = "role")
+    @JsonIgnore
+    @OneToMany(mappedBy = "role",fetch=FetchType.EAGER)
     private List<User> userList;
 
     public String getId() {
